@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InternLoom Talent Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .token-chip {
+        white-space: nowrap;
+      }
+      .shadow-panel {
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.45);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="min-h-screen bg-slate-950">
+      <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-xl">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.35em] text-slate-500">InternLoom Talent Portal</p>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <h1 class="text-2xl font-semibold text-slate-100">InternLoom</h1>
+              <span id="userBadge" class="inline-flex items-center rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-300">Guest</span>
+            </div>
+            <p id="userStatus" class="mt-2 text-sm text-slate-400">Please sign in or register to continue.</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="hidden rounded-3xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-300 sm:inline-flex">
+              Role: <span id="currentRole" class="ml-2 font-semibold text-slate-100">Guest</span>
+            </div>
+            <button id="notificationBell" class="relative inline-flex items-center justify-center rounded-3xl bg-slate-800 px-4 py-3 text-slate-100 transition hover:bg-slate-700">
+              Notifications
+              <span id="notificationCounter" class="absolute -right-2 -top-2 inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-amber-400 px-2 text-[0.65rem] font-semibold text-slate-950">0</span>
+            </button>
+            <button id="signOutButton" class="rounded-3xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-slate-100 transition hover:bg-slate-700 hidden">Sign Out</button>
+          </div>
+        </div>
+      </header>
+
+      <div id="notificationDropdown" class="fixed inset-x-4 top-24 z-50 hidden mx-auto max-w-3xl rounded-3xl border border-slate-800 bg-slate-950 shadow-panel">
+        <div class="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Live Notifications</p>
+            <p id="notificationFilterLabel" class="mt-1 text-sm text-slate-300">Showing all notifications.</p>
+          </div>
+          <button id="closeNotifications" class="text-slate-400 transition hover:text-slate-100">Close</button>
+        </div>
+        <div class="space-y-4 p-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-wrap gap-2">
+              <button data-filter="all" class="notification-filter rounded-2xl bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-700">All</button>
+              <button data-filter="unread" class="notification-filter rounded-2xl bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-700">Unread</button>
+              <button data-filter="read" class="notification-filter rounded-2xl bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-700">Read</button>
+            </div>
+            <button id="markAllRead" class="rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">Mark All As Read</button>
+          </div>
+          <div id="notificationList" class="max-h-72 space-y-3 overflow-y-auto rounded-3xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300"></div>
+        </div>
+      </div>
+
+      <main class="mx-auto max-w-7xl px-4 py-6 space-y-8">
+        <section id="authSection" class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-panel">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p class="text-xs uppercase tracking-[0.3em] text-slate-500">Identity Entrance</p>
+              <h2 class="text-2xl font-semibold text-slate-100">Authentication</h2>
+            </div>
+            <div class="rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-300">Secure access powered by InternLoom APIs</div>
+          </div>
+
+          <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
+            <div class="rounded-3xl border border-slate-800 bg-slate-950 p-6">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm uppercase tracking-[0.25em] text-slate-400">Sign In / Sign Up</p>
+                  <p class="mt-1 text-slate-300 text-sm">Choose your path and authenticate immediately.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button data-view="register" class="auth-tab rounded-2xl bg-slate-800 px-4 py-2 text-sm font-medium text-slate-100">Register</button>
+                  <button data-view="login" class="auth-tab rounded-2xl bg-slate-700 px-4 py-2 text-sm font-medium text-slate-300">Login</button>
+                </div>
+              </div>
+
+              <div id="registerPanel" class="mt-6 space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Email</span>
+                    <input id="registerEmail" type="email" placeholder="student@university.edu" class="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Password</span>
+                    <input id="registerPassword" type="password" placeholder="Choose a strong password" class="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-sm text-slate-400">Only institutional emails ending in <span class="font-semibold text-slate-200">.edu</span> or <span class="font-semibold text-slate-200">.ac.in</span> are accepted.</p>
+                  <button id="registerButton" class="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-400">Register as Student</button>
+                </div>
+              </div>
+
+              <div id="loginPanel" class="hidden mt-6 space-y-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Email</span>
+                    <input id="loginEmail" type="email" placeholder="recruitment@internloom.edu" class="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Password</span>
+                    <input id="loginPassword" type="password" placeholder="Enter password" class="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <button id="loginButton" class="inline-flex items-center justify-center rounded-2xl bg-slate-700 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-600">Login</button>
+                  <button id="studentHelper" class="rounded-2xl border border-slate-700 px-4 py-3 text-sm text-slate-200 transition hover:border-slate-500">Use Student Test</button>
+                  <button id="companyHelper" class="rounded-2xl border border-slate-700 px-4 py-3 text-sm text-slate-200 transition hover:border-slate-500">Use Company Test</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-800 bg-slate-950 p-6">
+              <div class="space-y-3">
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Onboarding Flow</p>
+                <div class="rounded-3xl bg-slate-900 p-4 text-sm text-slate-300">
+                  <p class="mb-3 font-semibold text-slate-100">OTP Verification</p>
+                  <p class="text-slate-400">After registration, a modal overlay will ask for a 6-digit OTP. The student remains signed in, but job applications are blocked until verification succeeds.</p>
+                </div>
+                <div class="rounded-3xl bg-slate-900 p-4 text-sm text-slate-300">
+                  <p class="mb-3 font-semibold text-slate-100">Notification Rules</p>
+                  <ul class="list-disc space-y-2 pl-5 text-slate-400">
+                    <li>Application status changes</li>
+                    <li>Job cap closures</li>
+                    <li>High match alerts over 70%</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="studentSection" class="hidden space-y-8">
+          <div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-panel">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Student Hub</p>
+                  <h2 class="text-2xl font-semibold text-slate-100">Profile Customizer</h2>
+                </div>
+                <div class="rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-200">Completeness: <span id="profileCompletenessScore" class="font-semibold text-emerald-300">0%</span></div>
+              </div>
+              <div class="mt-6 grid gap-4">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Name</span>
+                    <input id="profileName" type="text" placeholder="Full Name" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>College</span>
+                    <input id="profileCollege" type="text" placeholder="Institution Name" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Branch</span>
+                    <input id="profileBranch" type="text" placeholder="Computer Science" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Graduation Year</span>
+                    <input id="profileGradYear" type="text" placeholder="2026" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>CGPA</span>
+                    <input id="profileCgpa" type="text" placeholder="9.1" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Resume URL</span>
+                    <input id="profileResume" type="url" placeholder="https://..." class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>GitHub</span>
+                    <input id="profileGithub" type="url" placeholder="https://github.com/username" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>LinkedIn</span>
+                    <input id="profileLinkedin" type="url" placeholder="https://linkedin.com/in/username" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <label class="space-y-2 text-sm text-slate-300">
+                  <span>Bio</span>
+                  <textarea id="profileBio" rows="3" placeholder="Write a short summary about your talents." class="w-full rounded-3xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none"></textarea>
+                </label>
+                <div class="space-y-2 text-sm text-slate-300">
+                  <div class="flex items-center justify-between">
+                    <span>Skills</span>
+                    <button id="addSkillButton" class="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-100 transition hover:bg-slate-700">Add Skill</button>
+                  </div>
+                  <div class="rounded-3xl border border-slate-700 bg-slate-950 p-3">
+                    <div id="skillsTokenContainer" class="flex flex-wrap gap-2"></div>
+                    <input id="skillInput" type="text" placeholder="Type a skill and press Enter" class="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-3 pt-2">
+                  <button id="saveProfileButton" class="rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">Save Profile</button>
+                  <button id="deleteProfileButton" class="rounded-2xl bg-rose-600 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-rose-500">Delete Profile</button>
+                </div>
+                <p id="profileWarning" class="text-sm text-amber-300"></p>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <div class="rounded-3xl border border-slate-800 bg-slate-950 p-6 shadow-panel">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Placement Marketplace</p>
+                    <h2 class="text-2xl font-semibold text-slate-100">Open Internships</h2>
+                  </div>
+                  <span id="marketplaceStatus" class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">Live</span>
+                </div>
+                <div id="marketplaceJobs" class="mt-6 space-y-4"></div>
+              </div>
+
+              <div class="rounded-3xl border border-slate-800 bg-slate-950 p-6 shadow-panel">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Tracking Board</p>
+                    <h2 class="text-2xl font-semibold text-slate-100">Your Applications</h2>
+                  </div>
+                  <span id="applicationSummary" class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">Awaiting applications</span>
+                </div>
+                <div id="applicationTracker" class="mt-6 space-y-4"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="companySection" class="hidden space-y-8">
+          <div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-panel">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Corporate Dashboard</p>
+                  <h2 class="text-2xl font-semibold text-slate-100">Job Constructor</h2>
+                </div>
+                <div class="rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-200">Build and activate listings</div>
+              </div>
+              <div class="mt-6 space-y-4">
+                <label class="space-y-2 text-sm text-slate-300">
+                  <span>Job Title</span>
+                  <input id="jobTitle" type="text" placeholder="Frontend Intern" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                </label>
+                <label class="space-y-2 text-sm text-slate-300">
+                  <span>Description</span>
+                  <textarea id="jobDescription" rows="3" placeholder="Role summary and expectations." class="w-full rounded-3xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none"></textarea>
+                </label>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Stipend</span>
+                    <input id="jobStipend" type="text" placeholder="?20,000 / month" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Location</span>
+                    <input id="jobLocation" type="text" placeholder="Remote / Hybrid" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Application Deadline</span>
+                    <input id="jobDeadline" type="datetime-local" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                  <label class="space-y-2 text-sm text-slate-300">
+                    <span>Max Applicant Cap</span>
+                    <input id="jobCap" type="number" min="1" placeholder="10" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+                  </label>
+                </div>
+                <div class="space-y-2 text-sm text-slate-300">
+                  <div class="flex items-center justify-between">
+                    <span>Required Skills</span>
+                    <button id="addRequiredSkill" class="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-100 transition hover:bg-slate-700">Add Skill</button>
+                  </div>
+                  <div class="rounded-3xl border border-slate-700 bg-slate-950 p-3">
+                    <div id="requiredSkillsTags" class="flex flex-wrap gap-2"></div>
+                    <input id="requiredSkillInput" type="text" placeholder="Type skill and press Enter" class="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </div>
+                </div>
+                <div class="space-y-2 text-sm text-slate-300">
+                  <div class="flex items-center justify-between">
+                    <span>Preferred Skills</span>
+                    <button id="addPreferredSkill" class="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-100 transition hover:bg-slate-700">Add Skill</button>
+                  </div>
+                  <div class="rounded-3xl border border-slate-700 bg-slate-950 p-3">
+                    <div id="preferredSkillsTags" class="flex flex-wrap gap-2"></div>
+                    <input id="preferredSkillInput" type="text" placeholder="Type skill and press Enter" class="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none" />
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-3 pt-2">
+                  <button id="createJobButton" class="rounded-2xl bg-sky-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-sky-400">Create Job</button>
+                  <button id="purgeStaleButton" class="rounded-2xl bg-amber-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-400">Bulk Reject Stale</button>
+                </div>
+                <p id="jobBuilderMessage" class="text-sm text-rose-300"></p>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-800 bg-slate-950 p-6 shadow-panel">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Active Jobs</p>
+                  <h2 class="text-2xl font-semibold text-slate-100">Company Listings</h2>
+                </div>
+                <span id="companyJobStatus" class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">Live</span>
+              </div>
+              <div id="companyJobsList" class="mt-6 space-y-4"></div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-panel">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Applicant Pipeline</p>
+                <h2 class="text-2xl font-semibold text-slate-100">Review Candidates</h2>
+              </div>
+              <span id="pipelineHint" class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">Candidate flow</span>
+            </div>
+            <div id="companyPipeline" class="mt-6 space-y-4"></div>
+          </div>
+        </section>
+      </main>
+
+      <div id="otpModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/90 px-4 py-6">
+        <div class="w-full max-w-lg rounded-[2rem] border border-slate-700 bg-slate-900 p-8 shadow-2xl shadow-slate-950/60">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-semibold text-slate-100">Verify Your Email</h2>
+              <p class="mt-2 text-sm text-slate-400">Enter the 6-digit OTP sent to your registered institutional email.</p>
+            </div>
+            <button id="closeOtpModal" class="rounded-full bg-slate-800 px-4 py-2 text-sm text-slate-200 transition hover:bg-slate-700">Cancel</button>
+          </div>
+          <div class="mt-6 space-y-4">
+            <label class="space-y-2 text-sm text-slate-300">
+              <span>OTP Code</span>
+              <input id="otpCodeInput" type="text" maxlength="6" placeholder="123456" class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 outline-none" />
+            </label>
+            <button id="verifyOtpButton" class="w-full rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400">Verify OTP</button>
+            <p id="otpHelper" class="text-sm text-slate-400">You will need to verify before applying to internships.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="toast" class="pointer-events-none fixed bottom-6 right-6 z-50 hidden rounded-3xl border border-slate-700 bg-slate-900 px-5 py-4 text-sm text-slate-100 shadow-2xl shadow-slate-950/50"></div>
+    </div>
+
+    <script>
+      const state = {
+        token: localStorage.getItem('token'),
+        role: localStorage.getItem('role') || 'guest',
+        email: localStorage.getItem('email') || null,
+        isVerified: false,
+        user: null,
+        profile: null,
+        notifications: [],
+        notificationFilter: 'all',
+        jobs: [],
+        applications: [],
+        companyJobs: [],
+        requiredSkills: [],
+        preferredSkills: [],
+        profileSkills: [],
+      };
+
+      const elements = {
+        userBadge: document.getElementById('userBadge'),
+        userStatus: document.getElementById('userStatus'),
+        currentRole: document.getElementById('currentRole'),
+        signOutButton: document.getElementById('signOutButton'),
+        notificationBell: document.getElementById('notificationBell'),
+        notificationCounter: document.getElementById('notificationCounter'),
+        notificationDropdown: document.getElementById('notificationDropdown'),
+        closeNotifications: document.getElementById('closeNotifications'),
+        notificationFilterLabel: document.getElementById('notificationFilterLabel'),
+        notificationList: document.getElementById('notificationList'),
+        markAllRead: document.getElementById('markAllRead'),
+        authTabs: Array.from(document.querySelectorAll('.auth-tab')),
+        registerPanel: document.getElementById('registerPanel'),
+        loginPanel: document.getElementById('loginPanel'),
+        registerEmail: document.getElementById('registerEmail'),
+        registerPassword: document.getElementById('registerPassword'),
+        registerButton: document.getElementById('registerButton'),
+        loginEmail: document.getElementById('loginEmail'),
+        loginPassword: document.getElementById('loginPassword'),
+        loginButton: document.getElementById('loginButton'),
+        studentHelper: document.getElementById('studentHelper'),
+        companyHelper: document.getElementById('companyHelper'),
+        authSection: document.getElementById('authSection'),
+        studentSection: document.getElementById('studentSection'),
+        companySection: document.getElementById('companySection'),
+        profileCompletenessScore: document.getElementById('profileCompletenessScore'),
+        profileName: document.getElementById('profileName'),
+        profileCollege: document.getElementById('profileCollege'),
+        profileBranch: document.getElementById('profileBranch'),
+        profileGradYear: document.getElementById('profileGradYear'),
+        profileCgpa: document.getElementById('profileCgpa'),
+        profileGithub: document.getElementById('profileGithub'),
+        profileLinkedin: document.getElementById('profileLinkedin'),
+        profileBio: document.getElementById('profileBio'),
+        profileResume: document.getElementById('profileResume'),
+        skillInput: document.getElementById('skillInput'),
+        skillsTokenContainer: document.getElementById('skillsTokenContainer'),
+        addSkillButton: document.getElementById('addSkillButton'),
+        saveProfileButton: document.getElementById('saveProfileButton'),
+        deleteProfileButton: document.getElementById('deleteProfileButton'),
+        profileWarning: document.getElementById('profileWarning'),
+        marketplaceJobs: document.getElementById('marketplaceJobs'),
+        applicationTracker: document.getElementById('applicationTracker'),
+        applicationSummary: document.getElementById('applicationSummary'),
+        otpModal: document.getElementById('otpModal'),
+        otpCodeInput: document.getElementById('otpCodeInput'),
+        verifyOtpButton: document.getElementById('verifyOtpButton'),
+        closeOtpModal: document.getElementById('closeOtpModal'),
+        jobTitle: document.getElementById('jobTitle'),
+        jobDescription: document.getElementById('jobDescription'),
+        jobStipend: document.getElementById('jobStipend'),
+        jobLocation: document.getElementById('jobLocation'),
+        jobDeadline: document.getElementById('jobDeadline'),
+        jobCap: document.getElementById('jobCap'),
+        requiredSkillInput: document.getElementById('requiredSkillInput'),
+        preferredSkillInput: document.getElementById('preferredSkillInput'),
+        requiredSkillsTags: document.getElementById('requiredSkillsTags'),
+        preferredSkillsTags: document.getElementById('preferredSkillsTags'),
+        addRequiredSkill: document.getElementById('addRequiredSkill'),
+        addPreferredSkill: document.getElementById('addPreferredSkill'),
+        createJobButton: document.getElementById('createJobButton'),
+        purgeStaleButton: document.getElementById('purgeStaleButton'),
+        companyJobsList: document.getElementById('companyJobsList'),
+        companyPipeline: document.getElementById('companyPipeline'),
+      };
+
+      const toast = document.getElementById('toast');
+
+      const unwrapApiResponse = (payload) => {
+        if (!payload || typeof payload !== 'object') return { data: payload, message: null };
+        let value = payload;
+        while (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, 'data')) {
+          value = value.data;
+        }
+        return {
+          data: value,
+          message: payload.message || (value && value.message) || null,
+        };
+      };
+
+      const apiFetch = async (url, options = {}) => {
+        const init = {
+          headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+          ...options,
+        };
+
+        if (state.token) {
+          init.headers.Authorization = `Bearer ${state.token}`;
+        }
+
+        if (init.body && typeof init.body !== 'string') {
+          init.body = JSON.stringify(init.body);
+        }
+
+        try {
+          const response = await fetch(url, init);
+          const text = await response.text();
+          let parsed;
+          try {
+            parsed = JSON.parse(text);
+          } catch (error) {
+            parsed = { message: text };
+          }
+          const normalized = unwrapApiResponse(parsed);
+          return {
+            ok: response.ok,
+            status: response.status,
+            data: normalized.data,
+            message: normalized.message,
+            raw: parsed,
+          };
+        } catch (error) {
+          return {
+            ok: false,
+            status: 0,
+            data: null,
+            message: error.message || 'Network request failed',
+            raw: null,
+          };
+        }
+      };
+
+      const showToast = (message, type = 'info') => {
+        toast.textContent = message;
+        toast.className = `pointer-events-none fixed bottom-6 right-6 z-50 rounded-3xl border border-slate-700 px-5 py-4 text-sm shadow-2xl shadow-slate-950/50 ${
+          type === 'error' ? 'bg-rose-600 text-white' : 'bg-slate-900 text-slate-100'
+        }`;
+        toast.classList.remove('hidden');
+        clearTimeout(toast.hideTimeout);
+        toast.hideTimeout = setTimeout(() => toast.classList.add('hidden'), 3500);
+      };
+
+      const setSession = ({ token, role, email }) => {
+        state.token = token;
+        state.role = role || 'guest';
+        state.email = email || null;
+        localStorage.setItem('token', token);
+        localStorage.setItem('role', state.role);
+        localStorage.setItem('email', state.email || '');
+        elements.signOutButton.classList.toggle('hidden', !token);
+      };
+
+      const clearSession = () => {
+        state.token = null;
+        state.role = 'guest';
+        state.email = null;
+        state.user = null;
+        state.profile = null;
+        state.jobs = [];
+        state.applications = [];
+        state.companyJobs = [];
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('email');
+        elements.signOutButton.classList.add('hidden');
+      };
+
+      const updateNav = () => {
+        elements.userBadge.textContent = state.email ? state.email : 'Guest';
+        elements.currentRole.textContent = state.role.charAt(0).toUpperCase() + state.role.slice(1);
+        elements.userStatus.textContent = state.token
+          ? `Signed in as ${state.email}${state.isVerified ? ' · Verified' : ' · Unverified'}`
+          : 'Please sign in or register to continue.';
+        elements.notificationCounter.textContent = state.notifications.filter((item) => !item.read).length;
+        elements.userBadge.classList.toggle('bg-emerald-500 text-slate-950', state.isVerified);
+        elements.userBadge.classList.toggle('bg-slate-800 text-slate-300', !state.isVerified);
+      };
+
+      const renderAuthView = (view) => {
+        elements.authTabs.forEach((button) => {
+          const isActive = button.dataset.view === view;
+          button.classList.toggle('bg-slate-800', isActive);
+          button.classList.toggle('text-slate-100', isActive);
+          button.classList.toggle('bg-slate-700', !isActive);
+          button.classList.toggle('text-slate-300', !isActive);
+        });
+        elements.registerPanel.classList.toggle('hidden', view !== 'register');
+        elements.loginPanel.classList.toggle('hidden', view !== 'login');
+      };
+
+      const renderSkillTags = () => {
+        elements.skillsTokenContainer.innerHTML = '';
+        state.profileSkills.forEach((skill) => {
+          const pill = document.createElement('span');
+          pill.className = 'token-chip inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100';
+          pill.innerHTML = `${skill} <button type="button" data-skill="${skill}" class="ml-2 text-slate-400 hover:text-slate-100">×</button>`;
+          elements.skillsTokenContainer.appendChild(pill);
+        });
+      };
+
+      const renderRequiredSkills = () => {
+        elements.requiredSkillsTags.innerHTML = '';
+        state.requiredSkills.forEach((skill) => {
+          const pill = document.createElement('span');
+          pill.className = 'token-chip inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100';
+          pill.innerHTML = `${skill} <button type="button" data-skill="${skill}" data-role="required" class="ml-2 text-slate-400 hover:text-slate-100">×</button>`;
+          elements.requiredSkillsTags.appendChild(pill);
+        });
+      };
+
+      const renderPreferredSkills = () => {
+        elements.preferredSkillsTags.innerHTML = '';
+        state.preferredSkills.forEach((skill) => {
+          const pill = document.createElement('span');
+          pill.className = 'token-chip inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100';
+          pill.innerHTML = `${skill} <button type="button" data-skill="${skill}" data-role="preferred" class="ml-2 text-slate-400 hover:text-slate-100">×</button>`;
+          elements.preferredSkillsTags.appendChild(pill);
+        });
+      };
+
+      const addSkillToken = (value, targetArray, updateRender) => {
+        const normalized = String(value || '').trim();
+        if (!normalized) return;
+        if (!targetArray.includes(normalized)) {
+          targetArray.push(normalized);
+          updateRender();
+        }
+      };
+
+      const removeSkillToken = (skill, targetArray, updateRender) => {
+        const index = targetArray.indexOf(skill);
+        if (index >= 0) {
+          targetArray.splice(index, 1);
+          updateRender();
+        }
+      };
+
+      const setRolePanels = () => {
+        elements.studentSection.classList.toggle('hidden', state.role !== 'student');
+        elements.companySection.classList.toggle('hidden', state.role !== 'company');
+        elements.authSection.classList.toggle('hidden', !!state.token);
+      };
+
+      const loadNotifications = async () => {
+        if (!state.token) return;
+        const query = new URLSearchParams();
+        if (state.notificationFilter !== 'all') query.set('read', state.notificationFilter === 'read');
+        query.set('page', 1);
+        query.set('limit', 20);
+        const response = await apiFetch(`/api/notifications?${query.toString()}`, { method: 'GET' });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to load notifications', 'error');
+          return;
+        }
+        state.notifications = Array.isArray(response.data) ? response.data : [];
+        renderNotifications();
+      };
+
+      const renderNotifications = () => {
+        elements.notificationFilterLabel.textContent = `Showing ${state.notificationFilter} notifications.`;
+        elements.notificationList.innerHTML = '';
+        if (!state.notifications.length) {
+          elements.notificationList.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400">No notifications yet.</div>';
+          updateNav();
+          return;
+        }
+        state.notifications.forEach((item) => {
+          const card = document.createElement('div');
+          card.className = `rounded-3xl border px-4 py-4 ${item.read ? 'border-slate-700 bg-slate-900 text-slate-400' : 'border-amber-400 bg-slate-950 text-slate-100'}`;
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+              <p class="text-sm leading-6">${item.message}</p>
+              <span class="rounded-full bg-slate-800 px-2 py-1 text-[0.65rem] uppercase tracking-[0.15em] text-slate-400">${item.read ? 'Read' : 'Unread'}</span>
+            </div>
+            <p class="mt-2 text-[0.72rem] text-slate-500">${new Date(item.created_at).toLocaleString()}</p>
+          `;
+          elements.notificationList.appendChild(card);
+        });
+        updateNav();
+      };
+
+      const markAllNotificationsRead = async () => {
+        const response = await apiFetch('/api/notifications/read-all', { method: 'PATCH' });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to mark notifications read', 'error');
+          return;
+        }
+        showToast(response.message || 'All notifications marked as read');
+        await loadNotifications();
+      };
+
+      const login = async () => {
+        const email = elements.loginEmail.value.trim();
+        const password = elements.loginPassword.value;
+        if (!email || !password) {
+          showToast('Email and password are required.', 'error');
+          return;
+        }
+        const response = await apiFetch('/api/auth/login', {
+          method: 'POST',
+          body: { email, password },
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Login failed', 'error');
+          return;
+        }
+        setSession({ token: response.data?.token, role: response.data?.role, email: response.data?.email });
+        state.isVerified = !!response.data?.is_verified;
+        await initializeApp();
+        showToast('Login successful.');
+      };
+
+      const register = async () => {
+        const email = elements.registerEmail.value.trim();
+        const password = elements.registerPassword.value;
+        const institution = email.toLowerCase();
+        if (!email || !password) {
+          showToast('Email and password are required.', 'error');
+          return;
+        }
+        if (!institution.endsWith('.edu') && !institution.endsWith('.ac.in')) {
+          showToast('Please register with a valid institutional email (.edu or .ac.in).', 'error');
+          return;
+        }
+        const response = await apiFetch('/api/auth/register', {
+          method: 'POST',
+          body: { email, password, role: 'student' },
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Registration failed', 'error');
+          return;
+        }
+        setSession({ token: response.data?.token, role: 'student', email: response.data?.email });
+        state.isVerified = false;
+        openOtpModal();
+        await initializeApp();
+        showToast('Registration successful. Please verify your OTP.');
+      };
+
+      const verifyOtp = async () => {
+        const otp = elements.otpCodeInput.value.trim();
+        if (!otp || otp.length < 6) {
+          showToast('Please enter a valid 6-digit OTP.', 'error');
+          return;
+        }
+        const response = await apiFetch('/api/auth/verify-otp', {
+          method: 'POST',
+          body: { email: state.email, otp },
+        });
+        if (!response.ok) {
+          showToast(response.message || 'OTP verification failed', 'error');
+          return;
+        }
+        state.isVerified = true;
+        elements.otpModal.classList.add('hidden');
+        showToast('OTP verified successfully. You can now apply to internships.');
+        await loadProfile();
+        await loadJobs();
+      };
+
+      const loadCurrentUser = async () => {
+        if (!state.token) return;
+        const response = await apiFetch('/api/auth/me', { method: 'GET' });
+        if (!response.ok) {
+          clearSession();
+          return;
+        }
+        state.user = response.data;
+        state.role = response.data?.role || state.role;
+        state.email = response.data?.email || state.email;
+        state.isVerified = !!response.data?.is_verified;
+        localStorage.setItem('role', state.role);
+        localStorage.setItem('email', state.email || '');
+      };
+
+      const loadProfile = async () => {
+        if (state.role !== 'student') {
+          state.profile = null;
+          return;
+        }
+        const response = await apiFetch('/api/students/profile', { method: 'GET' });
+        if (!response.ok) {
+          state.profile = null;
+          return;
+        }
+        state.profile = response.data || null;
+        if (state.profile?.skills) {
+          state.profileSkills = Array.isArray(state.profile.skills) ? [...state.profile.skills] : [];
+        }
+        renderProfileFields();
+      };
+
+      const renderProfileFields = () => {
+        elements.profileName.value = state.profile?.name || '';
+        elements.profileCollege.value = state.profile?.college || '';
+        elements.profileBranch.value = state.profile?.branch || '';
+        elements.profileGradYear.value = state.profile?.graduation_year || '';
+        elements.profileCgpa.value = state.profile?.cgpa || '';
+        elements.profileGithub.value = state.profile?.github || '';
+        elements.profileLinkedin.value = state.profile?.linkedin || '';
+        elements.profileBio.value = state.profile?.bio || '';
+        elements.profileResume.value = state.profile?.resume_url || '';
+        elements.profileCompletenessScore.textContent = `${state.profile?.profile_completeness ?? 0}%`;
+        renderSkillTags();
+      };
+
+      const loadJobs = async () => {
+        const response = await apiFetch('/api/jobs', { method: 'GET' });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to load jobs', 'error');
+          state.jobs = [];
+          renderMarketplace();
+          renderCompanyJobs();
+          return;
+        }
+        state.jobs = Array.isArray(response.data) ? response.data : [];
+        renderMarketplace();
+        renderCompanyJobs();
+      };
+
+      const loadApplications = async () => {
+        if (!state.token) return;
+        const response = await apiFetch('/api/applications', { method: 'GET' });
+        if (!response.ok) {
+          state.applications = [];
+          renderApplications();
+          renderCompanyPipeline();
+          return;
+        }
+        state.applications = Array.isArray(response.data) ? response.data : [];
+        renderApplications();
+        renderCompanyPipeline();
+      };
+
+      const renderMarketplace = () => {
+        elements.marketplaceJobs.innerHTML = '';
+        const activeJobs = state.jobs.filter((job) => job.status === 'Active');
+        if (!activeJobs.length) {
+          elements.marketplaceJobs.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">No active internships are available right now.</div>';
+          return;
+        }
+        const appliedJobIds = new Set(state.applications.map((app) => app.job_id));
+        activeJobs.forEach((job) => {
+          const matchScore = Number(job.match_score) || 0;
+          const breakdownParts = [];
+          if (job.score_breakdown) {
+            if (job.score_breakdown.required_skill_overlap !== undefined) breakdownParts.push(`Skill Match: ${job.score_breakdown.required_skill_overlap}%`);
+            if (job.score_breakdown.branch_alignment_score !== undefined) breakdownParts.push(`Branch Fit: ${job.score_breakdown.branch_alignment_score}%`);
+            if (job.score_breakdown.year_alignment_score !== undefined) breakdownParts.push(`Year Fit: ${job.score_breakdown.year_alignment_score}%`);
+            if (job.score_breakdown.recency_multiplier !== undefined) breakdownParts.push(`Recency: ${job.score_breakdown.recency_multiplier >= 0.95 ? 'High' : job.score_breakdown.recency_multiplier >= 0.8 ? 'Medium' : 'Low'}`);
+          }
+          const alreadyApplied = appliedJobIds.has(job.id);
+          const card = document.createElement('div');
+          card.className = 'rounded-3xl border border-slate-800 bg-slate-950 p-6';
+          card.innerHTML = `
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-semibold text-slate-100">${job.title}</h3>
+                <p class="mt-2 text-slate-400 text-sm">${job.description || 'No description provided.'}</p>
+              </div>
+              <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">${job.status}</span>
+            </div>
+            <div class="mt-5 grid gap-2 rounded-3xl bg-slate-900 p-4 text-sm text-slate-300">
+              <div class="flex items-center justify-between"><span>Match Score</span><strong class="text-slate-100">${matchScore}%</strong></div>
+              ${breakdownParts.length ? `<div class="text-slate-400">${breakdownParts.join(' · ')}</div>` : ''}
+              <div class="flex items-center justify-between"><span>Applicants</span><strong class="text-slate-100">${job.current_applicants}/${job.max_applicant_cap}</strong></div>
+            </div>
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+              <button data-job-id="${job.id}" class="apply-now-button rounded-2xl ${state.isVerified && !alreadyApplied ? 'bg-sky-500 hover:bg-sky-400' : 'bg-slate-700 cursor-not-allowed'} px-5 py-3 text-sm font-semibold text-slate-950 transition">${alreadyApplied ? 'Already Applied' : state.isVerified ? 'Apply Now' : 'Verify to Apply'}</button>
+              <span class="text-sm text-slate-400">${job.max_applicant_cap - job.current_applicants} seats left</span>
+            </div>
+          `;
+          elements.marketplaceJobs.appendChild(card);
+        });
+        document.querySelectorAll('.apply-now-button').forEach((button) => {
+          button.addEventListener('click', async (event) => {
+            const jobId = Number(event.currentTarget.dataset.jobId);
+            if (!state.isVerified) {
+              showToast('You must verify your account before applying.', 'error');
+              return;
+            }
+            if (button.textContent.includes('Already')) return;
+            await applyToJob(jobId);
+          });
+        });
+      };
+
+      const renderApplications = () => {
+        elements.applicationTracker.innerHTML = '';
+        if (!state.applications.length) {
+          elements.applicationTracker.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">No applications yet. Apply to an internship to see your tracking board populate.</div>';
+          elements.applicationSummary.textContent = 'No applications';
+          return;
+        }
+        elements.applicationSummary.textContent = `${state.applications.length} application(s)`;
+        state.applications.forEach((application) => {
+          const job = state.jobs.find((job) => job.id === application.job_id) || {};
+          const card = document.createElement('div');
+          card.className = 'rounded-3xl border border-slate-800 bg-slate-950 p-6';
+          card.innerHTML = `
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 class="text-lg font-semibold text-slate-100">${job.title || 'Applied Role'}</h3>
+                <p class="mt-1 text-slate-400 text-sm">Status: <span class="font-medium text-slate-100">${application.status}</span></p>
+              </div>
+              <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">Applied ${new Date(application.applied_at).toLocaleDateString()}</span>
+            </div>
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+              <button data-application-id="${application.id}" class="withdraw-button rounded-2xl px-5 py-3 text-sm font-semibold transition ${application.status === 'Submitted' ? 'bg-rose-500 text-slate-950 hover:bg-rose-400' : 'bg-slate-700 text-slate-400 cursor-not-allowed'}">Withdraw</button>
+              <span class="text-sm text-slate-400">${application.status === 'Submitted' ? 'Can withdraw while submitted.' : 'No action available.'}</span>
+            </div>
+          `;
+          elements.applicationTracker.appendChild(card);
+        });
+        document.querySelectorAll('.withdraw-button').forEach((button) => {
+          button.addEventListener('click', async (event) => {
+            const applicationId = Number(event.currentTarget.dataset.applicationId);
+            const application = state.applications.find((app) => app.id === applicationId);
+            if (!application || application.status !== 'Submitted') return;
+            await withdrawApplication(applicationId);
+          });
+        });
+      };
+
+      const renderCompanyJobs = () => {
+        elements.companyJobsList.innerHTML = '';
+        if (state.role !== 'company' || !state.jobs.length) {
+          elements.companyJobsList.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">No company jobs to display yet.</div>';
+          return;
+        }
+        const companyJobs = state.jobs.filter((job) => job.company_id === state.user?.id);
+        if (!companyJobs.length) {
+          elements.companyJobsList.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">You have not created any jobs yet.</div>';
+          return;
+        }
+        companyJobs.forEach((job) => {
+          const card = document.createElement('div');
+          card.className = 'rounded-3xl border border-slate-800 bg-slate-950 p-6';
+          card.innerHTML = `
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 class="text-xl font-semibold text-slate-100">${job.title}</h3>
+                <p class="mt-2 text-slate-400 text-sm">${job.description || 'No description provided.'}</p>
+              </div>
+              <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">${job.status}</span>
+            </div>
+            <div class="mt-5 grid gap-2 rounded-3xl bg-slate-900 p-4 text-sm text-slate-300">
+              <div class="flex items-center justify-between"><span>Applicants</span><strong class="text-slate-100">${job.current_applicants}/${job.max_applicant_cap}</strong></div>
+              <div class="flex items-center justify-between"><span>Location</span><strong class="text-slate-100">${job.location || 'TBD'}</strong></div>
+              <div class="flex items-center justify-between"><span>Stipend</span><strong class="text-slate-100">${job.salary || 'N/A'}</strong></div>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button data-job-id="${job.id}" data-action="activate" class="lifecycle-button rounded-2xl bg-sky-500 px-5 py-3 text-sm font-semibold text-slate-950 transition ${job.status === 'Draft' ? '' : 'cursor-not-allowed bg-slate-700 text-slate-400'}">Activate</button>
+              <button data-job-id="${job.id}" data-action="close" class="lifecycle-button rounded-2xl bg-amber-500 px-5 py-3 text-sm font-semibold text-slate-950 transition ${job.status === 'Active' ? '' : 'cursor-not-allowed bg-slate-700 text-slate-400'}">Close</button>
+            </div>
+          `;
+          elements.companyJobsList.appendChild(card);
+        });
+        document.querySelectorAll('.lifecycle-button').forEach((button) => {
+          button.addEventListener('click', async (event) => {
+            const jobId = Number(event.currentTarget.dataset.jobId);
+            const action = event.currentTarget.dataset.action;
+            const job = state.jobs.find((job) => job.id === jobId);
+            if (!job) return;
+            if (action === 'activate' && job.status === 'Draft') {
+              await updateJobStatus(jobId, 'Active');
+            }
+            if (action === 'close' && job.status === 'Active') {
+              await updateJobStatus(jobId, 'Closed');
+            }
+          });
+        });
+      };
+
+      const renderCompanyPipeline = () => {
+        elements.companyPipeline.innerHTML = '';
+        if (state.role !== 'company') {
+          elements.companyPipeline.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">Company pipeline is available after login.</div>';
+          return;
+        }
+        if (!state.applications.length) {
+          elements.companyPipeline.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">No applications have been retrieved yet.</div>';
+          return;
+        }
+        const companyJobIds = state.jobs.filter((job) => job.company_id === state.user?.id).map((job) => job.id);
+        const pipelineApps = state.applications.filter((application) => companyJobIds.includes(application.job_id));
+        if (!pipelineApps.length) {
+          elements.companyPipeline.innerHTML = '<div class="rounded-3xl border border-slate-800 bg-slate-900 p-6 text-slate-400">No candidate applications available for your listings.</div>';
+          return;
+        }
+        pipelineApps.forEach((application) => {
+          const job = state.jobs.find((job) => job.id === application.job_id) || {};
+          const card = document.createElement('div');
+          card.className = 'rounded-3xl border border-slate-800 bg-slate-950 p-6';
+          card.innerHTML = `
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 class="text-lg font-semibold text-slate-100">${job.title || 'Unknown Role'}</h3>
+                <p class="mt-1 text-slate-400 text-sm">Applicant ID: ${application.user_id}</p>
+                <p class="text-slate-400 text-sm">Status: <span class="font-medium text-slate-100">${application.status}</span></p>
+              </div>
+              <span class="rounded-full bg-slate-800 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">Applied ${new Date(application.applied_at).toLocaleDateString()}</span>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button data-app-id="${application.id}" data-action="Shortlisted" class="review-button rounded-2xl bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 transition ${application.status === 'Submitted' ? '' : 'cursor-not-allowed bg-slate-700 text-slate-400'}">Shortlist</button>
+              <button data-app-id="${application.id}" data-action="Rejected" class="review-button rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-slate-950 transition ${application.status === 'Submitted' || application.status === 'Shortlisted' ? '' : 'cursor-not-allowed bg-slate-700 text-slate-400'}">Reject</button>
+              <button data-app-id="${application.id}" data-action="Accepted" class="review-button rounded-2xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 transition ${application.status === 'Shortlisted' ? '' : 'cursor-not-allowed bg-slate-700 text-slate-400'}">Accept</button>
+            </div>
+          `;
+          elements.companyPipeline.appendChild(card);
+        });
+        document.querySelectorAll('.review-button').forEach((button) => {
+          button.addEventListener('click', async (event) => {
+            const applicationId = Number(event.currentTarget.dataset.appId);
+            const status = event.currentTarget.dataset.action;
+            await updateApplicationStatus(applicationId, status);
+          });
+        });
+      };
+
+      const applyToJob = async (jobId) => {
+        const response = await apiFetch('/api/applications', {
+          method: 'POST',
+          body: { job_id: jobId },
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Application failed', 'error');
+          await loadJobs();
+          await loadApplications();
+          return;
+        }
+        showToast('Application submitted successfully.');
+        await loadJobs();
+        await loadApplications();
+      };
+
+      const withdrawApplication = async (applicationId) => {
+        const response = await apiFetch(`/api/applications/${applicationId}`, { method: 'DELETE' });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to withdraw application', 'error');
+          return;
+        }
+        showToast(response.message || 'Application withdrawn.');
+        await loadJobs();
+        await loadApplications();
+      };
+
+      const saveProfile = async () => {
+        const profilePayload = {
+          name: elements.profileName.value.trim() || null,
+          college: elements.profileCollege.value.trim() || null,
+          branch: elements.profileBranch.value.trim() || null,
+          graduation_year: elements.profileGradYear.value.trim() || null,
+          cgpa: elements.profileCgpa.value.trim() || null,
+          github: elements.profileGithub.value.trim() || null,
+          linkedin: elements.profileLinkedin.value.trim() || null,
+          bio: elements.profileBio.value.trim() || null,
+          resume_url: elements.profileResume.value.trim() || null,
+          skills: [...state.profileSkills],
+        };
+        const response = await apiFetch('/api/students/profile', {
+          method: state.profile?.id ? 'PUT' : 'POST',
+          body: profilePayload,
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to save profile', 'error');
+          return;
+        }
+        showToast('Profile saved successfully.');
+        await loadProfile();
+        await loadJobs();
+      };
+
+      const deleteProfile = async () => {
+        const hasPending = state.applications.some((application) => ['Submitted', 'Under Review', 'Shortlisted'].includes(application.status));
+        if (hasPending) {
+          elements.profileWarning.textContent = 'You cannot delete your profile while you have pending or active applications.';
+          return;
+        }
+        const confirmed = window.confirm('Delete your profile permanently? This cannot be undone.');
+        if (!confirmed) return;
+        const response = await apiFetch('/api/students/profile', { method: 'DELETE' });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to delete profile', 'error');
+          return;
+        }
+        showToast('Profile deleted successfully.');
+        clearSession();
+        setRolePanels();
+      };
+
+      const createJob = async () => {
+        const payload = {
+          title: elements.jobTitle.value.trim(),
+          description: elements.jobDescription.value.trim(),
+          required_skills: [...state.requiredSkills],
+          preferred_skills: [...state.preferredSkills],
+          location: elements.jobLocation.value.trim() || null,
+          salary: elements.jobStipend.value.trim() || null,
+          application_deadline: elements.jobDeadline.value || null,
+          max_applicant_cap: Number(elements.jobCap.value) || 1,
+        };
+        if (!payload.title || !payload.description) {
+          showToast('Title and description are required for a job.', 'error');
+          return;
+        }
+        const response = await apiFetch('/api/jobs', {
+          method: 'POST',
+          body: payload,
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to create job', 'error');
+          return;
+        }
+        showToast('Job created successfully.');
+        elements.jobTitle.value = '';
+        elements.jobDescription.value = '';
+        elements.jobStipend.value = '';
+        elements.jobLocation.value = '';
+        elements.jobDeadline.value = '';
+        elements.jobCap.value = '';
+        state.requiredSkills = [];
+        state.preferredSkills = [];
+        renderRequiredSkills();
+        renderPreferredSkills();
+        await loadJobs();
+      };
+
+      const updateJobStatus = async (jobId, status) => {
+        const response = await apiFetch(`/api/jobs/${jobId}/status`, {
+          method: 'PATCH',
+          body: { status },
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to update job status', 'error');
+          return;
+        }
+        showToast(response.message || 'Job status updated.');
+        await loadJobs();
+      };
+
+      const updateApplicationStatus = async (applicationId, status) => {
+        const response = await apiFetch(`/api/applications/${applicationId}/status`, {
+          method: 'PATCH',
+          body: { status },
+        });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to update application', 'error');
+          return;
+        }
+        showToast(response.message || 'Application status updated.');
+        await loadApplications();
+      };
+
+      const purgeStaleApplications = async () => {
+        const response = await apiFetch('/api/applications/bulk-status', { method: 'PATCH' });
+        if (!response.ok) {
+          showToast(response.message || 'Unable to purge stale applications', 'error');
+          return;
+        }
+        showToast(response.message || 'Stale applications rejected.');
+        await loadApplications();
+      };
+
+      const initializeApp = async () => {
+        await loadCurrentUser();
+        setRolePanels();
+        updateNav();
+        if (state.token) {
+          await Promise.all([loadNotifications(), loadJobs(), loadApplications(), loadProfile()]);
+        }
+      };
+
+      elements.authTabs.forEach((button) => {
+        button.addEventListener('click', () => renderAuthView(button.dataset.view));
+      });
+
+      elements.notificationBell.addEventListener('click', () => {
+        elements.notificationDropdown.classList.toggle('hidden');
+      });
+      elements.closeNotifications.addEventListener('click', () => {
+        elements.notificationDropdown.classList.add('hidden');
+      });
+      elements.markAllRead.addEventListener('click', markAllNotificationsRead);
+
+      document.querySelectorAll('.notification-filter').forEach((button) => {
+        button.addEventListener('click', async (event) => {
+          state.notificationFilter = event.currentTarget.dataset.filter;
+          await loadNotifications();
+        });
+      });
+
+      elements.registerButton.addEventListener('click', register);
+      elements.loginButton.addEventListener('click', login);
+      elements.studentHelper.addEventListener('click', () => {
+        elements.loginEmail.value = 'student@university.edu';
+        elements.loginPassword.value = 'Password123';
+      });
+      elements.companyHelper.addEventListener('click', () => {
+        elements.loginEmail.value = 'recruitment@internloom.edu';
+        elements.loginPassword.value = 'LoomCompany2026';
+      });
+      elements.signOutButton.addEventListener('click', () => {
+        clearSession();
+        setRolePanels();
+        updateNav();
+        showToast('Signed out successfully.');
+      });
+
+      elements.addSkillButton.addEventListener('click', () => {
+        addSkillToken(elements.skillInput.value, state.profileSkills, renderSkillTags);
+        elements.skillInput.value = '';
+      });
+      elements.skillInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          addSkillToken(elements.skillInput.value, state.profileSkills, renderSkillTags);
+          elements.skillInput.value = '';
+        }
+      });
+      elements.skillsTokenContainer.addEventListener('click', (event) => {
+        if (event.target.matches('[data-skill]')) {
+          removeSkillToken(event.target.dataset.skill, state.profileSkills, renderSkillTags);
+        }
+      });
+
+      elements.requiredSkillInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          addSkillToken(elements.requiredSkillInput.value, state.requiredSkills, renderRequiredSkills);
+          elements.requiredSkillInput.value = '';
+        }
+      });
+      elements.preferredSkillInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          addSkillToken(elements.preferredSkillInput.value, state.preferredSkills, renderPreferredSkills);
+          elements.preferredSkillInput.value = '';
+        }
+      });
+      elements.addRequiredSkill.addEventListener('click', () => {
+        addSkillToken(elements.requiredSkillInput.value, state.requiredSkills, renderRequiredSkills);
+        elements.requiredSkillInput.value = '';
+      });
+      elements.addPreferredSkill.addEventListener('click', () => {
+        addSkillToken(elements.preferredSkillInput.value, state.preferredSkills, renderPreferredSkills);
+        elements.preferredSkillInput.value = '';
+      });
+      elements.requiredSkillsTags.addEventListener('click', (event) => {
+        if (event.target.matches('[data-role="required"]')) {
+          removeSkillToken(event.target.dataset.skill, state.requiredSkills, renderRequiredSkills);
+        }
+      });
+      elements.preferredSkillsTags.addEventListener('click', (event) => {
+        if (event.target.matches('[data-role="preferred"]')) {
+          removeSkillToken(event.target.dataset.skill, state.preferredSkills, renderPreferredSkills);
+        }
+      });
+
+      elements.saveProfileButton.addEventListener('click', saveProfile);
+      elements.deleteProfileButton.addEventListener('click', deleteProfile);
+      elements.verifyOtpButton.addEventListener('click', verifyOtp);
+      elements.closeOtpModal.addEventListener('click', () => elements.otpModal.classList.add('hidden'));
+      elements.createJobButton.addEventListener('click', createJob);
+      elements.purgeStaleButton.addEventListener('click', purgeStaleApplications);
+
+      document.body.addEventListener('click', (event) => {
+        if (event.target.closest('#notificationDropdown') || event.target.closest('#notificationBell')) return;
+        if (!elements.notificationDropdown.classList.contains('hidden')) {
+          elements.notificationDropdown.classList.add('hidden');
+        }
+      });
+
+      renderAuthView('login');
+      renderSkillTags();
+      renderRequiredSkills();
+      renderPreferredSkills();
+      updateNav();
+      setRolePanels();
+      initializeApp();
+    </script>
+  </body>
+</html>
