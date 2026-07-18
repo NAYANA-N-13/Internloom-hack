@@ -57,6 +57,10 @@ CREATE TABLE IF NOT EXISTS users (
   role          user_role NOT NULL,
   is_verified   BOOLEAN NOT NULL DEFAULT FALSE,
   otp           VARCHAR(6),
+  company_name  VARCHAR(255),
+  company_status VARCHAR(50),
+  refresh_token VARCHAR(255),
+  status        VARCHAR(50) NOT NULL DEFAULT 'active',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   -- Defense-in-depth; primary validation remains at the API layer.
@@ -77,13 +81,18 @@ CREATE TABLE IF NOT EXISTS student_profiles (
   name             VARCHAR(255),
   college          VARCHAR(255),
   branch           VARCHAR(255),
+  year             VARCHAR(16),
   graduation_year  INT,
   cgpa             NUMERIC(4, 2),
   skills           JSONB NOT NULL DEFAULT '[]'::JSONB,
+  education_history JSONB NOT NULL DEFAULT '[]'::JSONB,
+  social_links     JSONB NOT NULL DEFAULT '[]'::JSONB,
   github_url       VARCHAR(500),
   linkedin_url     VARCHAR(500),
   bio              TEXT,
   resume_url       VARCHAR(500),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
   CONSTRAINT chk_student_profiles_skills_array CHECK (jsonb_typeof(skills) = 'array'),
   CONSTRAINT chk_student_profiles_graduation_year CHECK (
@@ -102,12 +111,16 @@ CREATE TABLE IF NOT EXISTS job_listings (
   description           TEXT NOT NULL,
   required_skills       JSONB NOT NULL DEFAULT '[]'::JSONB,
   preferred_skills      JSONB NOT NULL DEFAULT '[]'::JSONB,
+  preferred_branches    JSONB NOT NULL DEFAULT '[]'::JSONB,
+  preferred_years      JSONB NOT NULL DEFAULT '[]'::JSONB,
+  salary               VARCHAR(255),
   stipend               NUMERIC(12, 2),
   location              job_location NOT NULL,
   application_deadline  TIMESTAMPTZ NOT NULL,
   max_applicant_cap     INT NOT NULL CHECK (max_applicant_cap > 0),
   current_applicants    INT NOT NULL DEFAULT 0 CHECK (current_applicants >= 0),
   status                job_status NOT NULL DEFAULT 'Draft',
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   is_approved           BOOLEAN NOT NULL DEFAULT FALSE,
   created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -133,6 +146,8 @@ CREATE TABLE IF NOT EXISTS applications (
 CREATE TABLE IF NOT EXISTS notifications (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  job_id      UUID,
+  type        VARCHAR(50),
   message     TEXT NOT NULL,
   is_read     BOOLEAN NOT NULL DEFAULT FALSE,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
